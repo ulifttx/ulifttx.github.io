@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>CV-Formatter</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/vs2015.min.css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous" />
+		<link rel="stylesheet" href="index.css" />
+		<link href="prism.css" rel="stylesheet" />
+		<link rel="icon" href="cv-favicon.ico" />
+	</head>
+	<body>
+		<div class="container">
+			<h1 class="my-3">CV Code Formatter for Hygraph</h1>
+			<div class="row">
+				<div class="btn-group" id="languageSelect" role="group" aria-label="Basic radio toggle button group" onchange="formatCode()"">
+					<input type="radio" class="btn-check" name="btnradio" id="btn-py" value="python" autocomplete="off" checked />
+					<label class="btn btn-outline-info" for="btn-py">Python</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-html" value="html" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-html">HTML</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-css" value="css" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-css">CSS</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-js" value="javascript" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-js">JavaScript</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-typescript" value="typescript" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-typescript">TypeScript</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-jsx" value="react jsx" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-jsx">React JSX</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-tsx" value="react tsx" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-tsx">React TSX</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-c" value="c" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-c">C</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-git" value="git" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-git">Git</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-bash" value="bash" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-bash">Bash</label>
+
+					<input type="radio" class="btn-check" name="btnradio" id="btn-sql" value="sql" autocomplete="off" />
+					<label class="btn btn-outline-info" for="btn-sql">SQL</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12 col-lg-6 mb-4">
+					<label for="inputCode"><h2>Input Code</h2></label>
+					<textarea class="form-control mb-2" id="inputCode" rows="12" onchange="formatCode()"></textarea>
+					<button type="button" class="btn btn-primary" onclick="pasteCode()">Paste</button>
+				</div>
+				<div class="col-md-12 col-lg-6 mb-4">
+					<label for="inputCode"><h2>Input Code with Options</h2></label>
+					<textarea class="form-control mb-2" id="inputCodeOptions" rows="12" onchange="formatCode()"></textarea>
+					<button type="button" class="btn btn-primary" onclick="pasteCode()">Paste</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12 col-lg-6 mb-4">
+					<label for="outputCode"><h2>Formatted Code</h2></label>
+					<textarea class="form-control mb-2" id="outputCode" rows="12"></textarea>
+					<button type="button" class="btn btn-primary" onclick="copyCode()">Copy</button>
+				</div>
+				<div class="col-md-12 col-lg-6 mb-4">
+					<label for="sample"><h2>Sample</h2></label>
+					<pre>
+						<div class="container" id="sample"></div>
+					</pre>
+				</div>
+			</div>
+		</div>
+
+		<script src="prism.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+		<script src="index.js"></script>
+	</body>
+</html>
