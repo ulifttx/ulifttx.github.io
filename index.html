@@ -54,12 +54,17 @@
 				<div class="col-md-12 col-lg-6 mb-4">
 					<label for="inputCode"><h2>Input Code</h2></label>
 					<textarea class="form-control mb-2" id="inputCode" rows="12" onchange="formatCode()"></textarea>
-					<button type="button" class="btn btn-primary" onclick="pasteCode()">Paste</button>
+					<button type="button" class="btn btn-primary" onclick="pasteInputCode()">Paste</button>
 				</div>
 				<div class="col-md-12 col-lg-6 mb-4">
-					<label for="inputCode"><h2>Input Code with Options</h2></label>
+					<label for="inputCodeOptions"><h2>Input Code with Options</h2></label>
 					<textarea class="form-control mb-2" id="inputCodeOptions" rows="12" onchange="formatCode()"></textarea>
-					<button type="button" class="btn btn-primary" onclick="pasteCode()">Paste</button>
+					<button type="button" class="btn btn-primary" onclick="pasteInputCodeOptions()">Paste</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="input-group mb-3">
+					<input type="text" class="form-control" id="replaceText" aria-label="Default" aria-describedby="inputGroup-sizing-default" onchange="replaceText()">
 				</div>
 			</div>
 			<div class="row">

@@ -27,30 +27,117 @@ function mapColor(color) {
     }
 }
 
-function loopNodes(nodes, color, sanitizedText) {
-    result = ""
-    if (nodes.length == 0) {
-      return result
+function checkPosition(position, diff) {
+    let index = 0;
+    for (item of diff) {
+      if (position == item[1]) {
+        return index;
+      }
+      if (position == item[0]) {
+        return -1;
+      }
+      if (position >= item[0] && position <= item[1]) {
+        return -2;
+      }
+      index++;
     }
+    return -3;
+}
+
+function loopNodes(nodes, color, sanitizedText, diff, position) {
+    let result = "";
+
+    if (nodes.length == 0) {
+      return {
+        result: result,
+        position: position
+      };
+    }
+
     for (const node of nodes) {
       if (node.nodeType == 3) {
-        const {first, second} = color
+        const {first, second} = color;
+        let text = node.nodeValue;
+        let selection = "";
+        const deleteList = [];
+
         if (sanitizedText == "" || sanitizedText === undefined) {
-          result += (first + node.nodeValue + second)
+          sanitizedText = text;
+        }
+
+        for (let i = 0; i < text.length; i++) {
+          const status = checkPosition(position, diff);
+          if (status > -3) {
+            deleteList.push(i);
+          }
+          if (status >= 0) {
+            selection = "<blank id='" + (status + 1).toString() + "'size='5'></blank>";
+          }
+          position++;
+        }
+
+        let i = text.length - 1;
+        let j = sanitizedText.length - 1;
+        let originalText = "";
+        while (i >= 0 && j >= 0) {
+          if (text[i] == sanitizedText[j]) {
+            if (deleteList.includes(i)) {
+              sanitizedText = sanitizedText.slice(0, j) + sanitizedText.slice(j + 1);
+            }
+          }
+          else {
+            while (j >= 0 && sanitizedText[j] != '&') {
+              if (deleteList.includes(i)) {
+                sanitizedText = sanitizedText.slice(0, j) + sanitizedText.slice(j + 1);
+              }
+              j--;
+            }
+
+            if (sanitizedText[j] == '&') {
+              if (deleteList.includes(i)) {
+                sanitizedText = sanitizedText.slice(0, j) + sanitizedText.slice(j + 1);
+              }
+            }
+          }
+          if (deleteList.includes(i)) {
+            originalText = "□" + originalText;
+            text = text.slice(0, i) + text.slice(i + 1);
+          }
+          else {
+            originalText = text[i] + originalText;
+          }
+          i--;
+          j--;
+        }
+
+        node.nodeValue = originalText;
+
+        if (text.length > 0) {
+          result += (selection + first + sanitizedText + second);
         }
         else {
-          result += (first + sanitizedText + second)
+          if (selection.length > 0) {
+            result += selection;
+          }
         }
+        sanitizedText = "";
       }
       else {
         let nSanitizedText = "";
         if (node.childNodes.length == 1 && node.firstChild.nodeType == 3 && node.firstChild.nodeValue !== node.innerHTML) {
-          nSanitizedText = node.innerHTML
+          nSanitizedText = node.innerHTML;
         }
-        result += loopNodes(node.childNodes, mapColor(window.getComputedStyle(node).color), nSanitizedText)
+
+        let results = loopNodes(node.childNodes, mapColor(window.getComputedStyle(node).color), nSanitizedText, diff, position);
+        result += results.result;
+        position = results.position
       }
     }
-    return result
+
+    return {
+      result: result,
+      position: position
+    }
 }
 
 function replaceLeadingSpaces(code) {
@@ -136,8 +223,34 @@ function getLanguge() {
     }
 }
 
+function calculateDiff(inputCode, inputCodeOptions) {
+    let diff = [];
+    for (let i = 0; i < inputCode.length && i < inputCodeOptions.length; i++) {
+      if (inputCode.charAt(i) !== inputCodeOptions.charAt(i)) {
+        var diffElement = [i, 0];
+        while (i < inputCode.length && i < inputCodeOptions.length && inputCode.charAt(i) !== inputCodeOptions.charAt(i)) {
+          i++;
+        }
+        i--;
+        diffElement[1] = i;
+        diff.push(diffElement);
+      }
+    }
+    return diff;
+}
+
+function replaceText() {
+  const replaceText = document.getElementById("replaceText").value;
+  document.getElementById("replaceText").value = "¿".repeat(replaceText.length);
+}
+
 function formatCode() {
     const inputCode = document.getElementById("inputCode").value;
+    let inputCodeOptions = document.getElementById("inputCodeOptions").value;
+    if (inputCodeOptions == "") {
+      inputCodeOptions = inputCode
+    }
+    const diff = calculateDiff(inputCode, inputCodeOptions);
     var selected_language = document.querySelector('input[name="btnradio"]:checked').value;
 
     const {languagePrism, languageString} = getLanguge()
@@ -145,7 +258,7 @@ function formatCode() {
 
     var myDiv = document.getElementById("sample");
     myDiv.innerHTML = formattedCode
-    result = loopNodes(myDiv.childNodes, mapColor(""));
+    let {result, position} = loopNodes(myDiv.childNodes, mapColor(""), "", diff, 0);
     result = replaceLeadingSpaces(result);
     document.getElementById("outputCode").value = result;
 }
@@ -153,19 +266,24 @@ function formatCode() {
 function copyCode() {
   var myDiv = document.getElementById("sample");
   const formattedCode = myDiv.innerHTML;
-  const {languagePrism, languageString} = getLanguge()
-  console.log(window.getComputedStyle(myDiv))
+  console.log(window.getComputedStyle(myDiv));
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(formattedCode, "text/html");
-  result = loopNodes(myDiv.childNodes, mapColor(""));
-  result = replaceLeadingSpaces(result);
+  let {first, position} = loopNodes(myDiv.childNodes, mapColor(""), "", diff, 0);
+  result = replaceLeadingSpaces(first);
   console.log(result)
   navigator.clipboard.writeText(result)
 }
 
-async function pasteCode(input) {
+async function pasteInputCode(input) {
   const text = await navigator.clipboard.readText();
   document.getElementById("inputCode").value = text;
+  formatCode();
+}
+
+async function pasteInputCodeOptions(input) {
+  const text = await navigator.clipboard.readText();
+  document.getElementById("inputCodeOptions").value = text;
   formatCode();
 }
