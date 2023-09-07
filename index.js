@@ -17,31 +17,55 @@ function mapColor(color) {
     
     if (color in colorMap) {
       return {
-        first: "<" + colorMap[color] + ">",
-        second: "</" + colorMap[color] + ">"
-      }
+        prepend: "<" + colorMap[color] + ">",
+        append: "</" + colorMap[color] + ">"
+      };
     }
     return {
-      first: "",
-      second: ""
-    }
+      prepend: "",
+      append: ""
+    };
 }
 
 function checkPosition(position, diff) {
     let index = 0;
     for (item of diff) {
-      if (position == item[1]) {
-        return index;
-      }
       if (position == item[0]) {
-        return -1;
+        return index + 1;
+      }
+      if (position == item[1]) {
+        return 0;
       }
       if (position >= item[0] && position <= item[1]) {
-        return -2;
+        return -1;
       }
       index++;
     }
-    return -3;
+    return -2;
+}
+
+function removeStringIndex(text, index) {
+  return text.slice(0, index) + text.slice(index + 1);
+}
+
+function replaceStringIndex(color, selections, text, index) {
+  const {prepend, append} = color;
+  if (text.length > 1) {
+    return text.slice(0, index) + append + selections[index] + prepend + text.slice(index + 1);
+  }
+  else {
+    return selections[index];
+  }
+}
+
+function replaceOrRemoveIfExists(color, deleteSet, selections, text, index) {
+  if (index in selections) {
+    return replaceStringIndex(color, selections, text, index);
+  }
+  if (deleteSet.has(index)) {
+    return removeStringIndex(text, index);
+  }
+  return text;
 }
 
 function loopNodes(nodes, color, sanitizedText, diff, position) {
@@ -56,70 +80,60 @@ function loopNodes(nodes, color, sanitizedText, diff, position) {
 
     for (const node of nodes) {
       if (node.nodeType == 3) {
-        const {first, second} = color;
+        const {prepend, append} = color;
         let text = node.nodeValue;
-        let selection = "";
-        const deleteList = [];
+        let deleteSet = new Set();
+        let selections = {};
+        let hasSelection = false;
+        let originalText = "";
 
-        if (sanitizedText == "" || sanitizedText === undefined) {
+        if (sanitizedText === undefined || sanitizedText == "")  {
           sanitizedText = text;
         }
 
         for (let i = 0; i < text.length; i++) {
           const status = checkPosition(position, diff);
-          if (status > -3) {
-            deleteList.push(i);
+          if (status > -2) {
+            deleteSet.add(i);
           }
-          if (status >= 0) {
-            selection = "<blank id='" + (status + 1).toString() + "'size='5'></blank>";
+          if (status > 0) {
+            selection = "<blank id='" + status.toString() + "'size='5'></blank>";
+            selections[i] = selection;
+            hasSelection = true;
           }
           position++;
         }
 
-        let i = text.length - 1;
-        let j = sanitizedText.length - 1;
-        let originalText = "";
-        while (i >= 0 && j >= 0) {
+        for (let i = text.length - 1, j = sanitizedText.length - 1; i >= 0 && j >= 0; i--, j--) {
           if (text[i] == sanitizedText[j]) {
-            if (deleteList.includes(i)) {
-              sanitizedText = sanitizedText.slice(0, j) + sanitizedText.slice(j + 1);
-            }
+            sanitizedText = replaceOrRemoveIfExists(color, deleteSet, selections, sanitizedText, j);
           }
           else {
-            while (j >= 0 && sanitizedText[j] != '&') {
-              if (deleteList.includes(i)) {
-                sanitizedText = sanitizedText.slice(0, j) + sanitizedText.slice(j + 1);
-              }
-              j--;
+            for (; j > -2 && sanitizedText[j + 1] != '&'; j--) {
+              sanitizedText = replaceOrRemoveIfExists(color, deleteSet, selections, sanitizedText, j);
             }
-
-            if (sanitizedText[j] == '&') {
-              if (deleteList.includes(i)) {
-                sanitizedText = sanitizedText.slice(0, j) + sanitizedText.slice(j + 1);
-              }
-            }
+            j++;
           }
-          if (deleteList.includes(i)) {
-            originalText = "□" + originalText;
+
+          if (deleteSet.has(i)) {
+            originalText = '□' + originalText;
             text = text.slice(0, i) + text.slice(i + 1);
           }
           else {
             originalText = text[i] + originalText;
           }
-          i--;
-          j--;
+        }
+
+        if (text.length > 0) {
+          result += (prepend + sanitizedText + append);
+        }
+        else {
+          if (hasSelection) {
+            result += sanitizedText;
+          }
         }
 
         node.nodeValue = originalText;
-
-        if (text.length > 0) {
-          result += (selection + first + sanitizedText + second);
-        }
-        else {
-          if (selection.length > 0) {
-            result += selection;
-          }
-        }
         sanitizedText = "";
       }
       else {
@@ -130,14 +144,14 @@ function loopNodes(nodes, color, sanitizedText, diff, position) {
 
         let results = loopNodes(node.childNodes, mapColor(window.getComputedStyle(node).color), nSanitizedText, diff, position);
         result += results.result;
-        position = results.position
+        position = results.position;
       }
     }
 
     return {
       result: result,
       position: position
-    }
+    };
 }
 
 function replaceLeadingSpaces(code) {
@@ -158,69 +172,7 @@ function replaceLeadingSpaces(code) {
       nLine = "&emsp;".repeat(embp) + " ".repeat(space) + line.slice(spaceCount, line.length);
       nLines.push(nLine);
     }
-    return nLines.join("\n")
-}
-
-function getLanguge() {
-    var selected_language = document.querySelector('input[name="btnradio"]:checked').value;
-
-    let languagePrism = null;
-    let languageString = "";
-    switch (selected_language) {
-      case "python":
-        languagePrism = Prism.languages.python;
-        languageString = "python";
-        break;
-      case "html":
-        languagePrism = Prism.languages.html;
-        languageString = "html";
-        break;
-      case "javascript":
-        languagePrism = Prism.languages.javascript;
-        languageString = "javascript";
-        break;
-      case "css":
-        languagePrism = Prism.languages.css;
-        languageString = "css";
-        break;
-      case "c":
-        languagePrism = Prism.languages.c;
-        languageString = "c";
-        break;
-      case "git":
-        languagePrism = Prism.languages.git;
-        languageString = "git";
-        break;
-      case "bash":
-        languagePrism = Prism.languages.bash;
-        languageString = "bash";
-        break;
-      case "sql":
-        languagePrism = Prism.languages.sql;
-        languageString = "sql";
-        break;
-      case "typescript":
-        languagePrism = Prism.languages.typescript;
-        languageString = "typescript";
-        break;
-      case "react jsx":
-        languagePrism = Prism.languages.jsx;
-        languageString = "jsx";
-        break;
-      case "react tsx":
-        languagePrism = Prism.languages.tsx;
-        languageString = "tsx";
-        break;
-      default:
-        languagePrism = Prism.languages.python;
-        languageString = "python";
-        break;
-    }
-
-    return {
-      languagePrism: languagePrism,
-      languageString: languageString
-    }
+    return nLines.join('\n');
 }
 
 function calculateDiff(inputCode, inputCodeOptions) {
@@ -239,9 +191,28 @@ function calculateDiff(inputCode, inputCodeOptions) {
     return diff;
 }
 
-function replaceText() {
-  const replaceText = document.getElementById("replaceText").value;
-  document.getElementById("replaceText").value = "□".repeat(replaceText.length);
+function getLanguge() {
+  let selected_language = document.querySelector('input[name="btnradio"]:checked').value;
+
+  const languageMap = {
+    "python": {languagePrism: Prism.languages.python, languageString: "python"},
+    "html": {languagePrism: Prism.languages.html, languageString: "html"},
+    "javascript": {languagePrism: Prism.languages.javascript, languageString: "javascript"},
+    "css": {languagePrism: Prism.languages.css, languageString: "css"},
+    "c": {languagePrism: Prism.languages.c, languageString: "c"},
+    "git": {languagePrism: Prism.languages.git, languageString: "git"},
+    "bash": {languagePrism: Prism.languages.bash, languageString: "bash"},
+    "sql": {languagePrism: Prism.languages.sql, languageString: "sql"},
+    "typescript": {languagePrism: Prism.languages.typescript, languageString: "typescript"},
+    "react jsx": {languagePrism: Prism.languages.jsx, languageString: "jsx"},
+    "react tsx": {languagePrism: Prism.languages.tsx, languageString: "tsx"}
+  };
+
+  if (selected_language in languageMap) {
+    return languageMap[selected_language];
+  }
+
+  return languageMap["python"];
 }
 
 function formatCode() {
@@ -250,39 +221,35 @@ function formatCode() {
     if (inputCodeOptions == "") {
       inputCodeOptions = inputCode
     }
-    const diff = calculateDiff(inputCode, inputCodeOptions);
-    var selected_language = document.querySelector('input[name="btnradio"]:checked').value;
 
+    const diff = calculateDiff(inputCode, inputCodeOptions);
     const {languagePrism, languageString} = getLanguge()
     const formattedCode = Prism.highlight(inputCode, languagePrism, languageString);
 
-    var myDiv = document.getElementById("sample");
+    let myDiv = document.getElementById("sample");
     myDiv.innerHTML = formattedCode
     let {result, position} = loopNodes(myDiv.childNodes, mapColor(""), "", diff, 0);
     result = replaceLeadingSpaces(result);
     document.getElementById("outputCode").value = result;
 }
 
-function copyCode() {
-  var myDiv = document.getElementById("sample");
-  const formattedCode = myDiv.innerHTML;
-  console.log(window.getComputedStyle(myDiv));
-
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(formattedCode, "text/html");
-  let {first, position} = loopNodes(myDiv.childNodes, mapColor(""), "", diff, 0);
-  result = replaceLeadingSpaces(first);
-  console.log(result)
-  navigator.clipboard.writeText(result)
+function replaceText() {
+  const replaceText = document.getElementById("replaceText").value;
+  document.getElementById("replaceText").value = "□".repeat(replaceText.length);
 }
 
-async function pasteInputCode(input) {
+function copyCode() {
+  let result = document.getElementById("outputCode").value;
+  navigator.clipboard.writeText(result);
+}
+
+async function pasteInputCode() {
   const text = await navigator.clipboard.readText();
   document.getElementById("inputCode").value = text;
   formatCode();
 }
 
-async function pasteInputCodeOptions(input) {
+async function pasteInputCodeOptions() {
   const text = await navigator.clipboard.readText();
   document.getElementById("inputCodeOptions").value = text;
   formatCode();
