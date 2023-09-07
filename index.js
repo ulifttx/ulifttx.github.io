@@ -241,7 +241,7 @@ function calculateDiff(inputCode, inputCodeOptions) {
 
 function replaceText() {
   const replaceText = document.getElementById("replaceText").value;
-  document.getElementById("replaceText").value = "¿".repeat(replaceText.length);
+  document.getElementById("replaceText").value = "□".repeat(replaceText.length);
 }
 
 function formatCode() {
