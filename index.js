@@ -142,6 +142,8 @@ function loopNodes(nodes, color, sanitizedText, diff, position) {
           nSanitizedText = node.innerHTML;
         }
 
+        console.log(node);
+        console.log(window.getComputedStyle(node).getPropertyValue("--hygraph"));
         let results = loopNodes(node.childNodes, mapColor(window.getComputedStyle(node).color), nSanitizedText, diff, position);
         result += results.result;
         position = results.position;
@@ -152,6 +154,26 @@ function loopNodes(nodes, color, sanitizedText, diff, position) {
       result: result,
       position: position
     };
+}
+
+function replaceLeadingTabs(code) {
+  const lines = code.split("\n");
+  let nLines = [];
+  for (line of lines) {
+    let tabCount = 0;
+    for (let i = 0; i < line.length; i++) {
+      if (line.charAt(i) == "\t") {
+        tabCount++;
+      }
+      else {
+        break;
+      }
+    }
+    const spaces = tabCount * 4;
+    nLine = " ".repeat(spaces) + line.slice(tabCount, line.length);
+    nLines.push(nLine);
+  }
+  return nLines.join('\n');
 }
 
 function replaceLeadingSpaces(code) {
@@ -216,18 +238,20 @@ function getLanguge() {
 }
 
 function formatCode() {
-    const inputCode = document.getElementById("inputCode").value;
+    let inputCode = document.getElementById("inputCode").value;
+    inputCode = replaceLeadingTabs(inputCode);
     let inputCodeOptions = document.getElementById("inputCodeOptions").value;
+    inputCodeOptions = replaceLeadingTabs(inputCodeOptions);
     if (inputCodeOptions == "") {
-      inputCodeOptions = inputCode
+      inputCodeOptions = inputCode;
     }
 
     const diff = calculateDiff(inputCode, inputCodeOptions);
-    const {languagePrism, languageString} = getLanguge()
+    const {languagePrism, languageString} = getLanguge();
     const formattedCode = Prism.highlight(inputCode, languagePrism, languageString);
 
     let myDiv = document.getElementById("sample");
-    myDiv.innerHTML = formattedCode
+    myDiv.innerHTML = formattedCode;
     let {result, position} = loopNodes(myDiv.childNodes, mapColor(""), "", diff, 0);
     result = replaceLeadingSpaces(result);
     document.getElementById("outputCode").value = result;

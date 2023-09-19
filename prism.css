@@ -82,6 +82,7 @@ pre[class*="language-"] {
 .token.inserted,
 .token.unit {
 	color: #b5cea8;
+	--hygraph: blue;
 }
 
 .token.selector,
@@ -259,6 +260,7 @@ code[class*="language-html"] {
 
 .language-html .token.punctuation {
 	color: #808080;
+	--hygraph: "bx";
 }
 /*********************************************************
 * Line highlighting
