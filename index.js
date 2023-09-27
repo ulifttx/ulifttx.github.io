@@ -1,3 +1,12 @@
+$("#languageList li a").click(function(){
+  $('#languageSelect').text($(this).text())
+  $('#languageSelect').val($(this).text())
+});
+
+$('#languageList li a').click(function(){
+  formatCode();
+});
+
 function mapColor(color) {
     const colorMap = {
       //"rgb(212, 212, 212)": "light-gray",
@@ -27,11 +36,14 @@ function mapColor(color) {
     };
 }
 
+
 function checkPosition(position, diff) {
     let index = 0;
     for (item of diff) {
       if (position == item[0]) {
-        return index + 1;
+        const emptyIndex = document.getElementById("emptyIndex").value;
+        const emptyIndexNum = parseInt(emptyIndex);
+        return index + emptyIndexNum;
       }
       if (position == item[1]) {
         return 0;
@@ -214,27 +226,27 @@ function calculateDiff(inputCode, inputCodeOptions) {
 }
 
 function getLanguge() {
-  let selected_language = document.querySelector('input[name="btnradio"]:checked').value;
+  let selected_language = $('#languageSelect').text();
 
   const languageMap = {
-    "python": {languagePrism: Prism.languages.python, languageString: "python"},
-    "html": {languagePrism: Prism.languages.html, languageString: "html"},
-    "javascript": {languagePrism: Prism.languages.javascript, languageString: "javascript"},
-    "css": {languagePrism: Prism.languages.css, languageString: "css"},
-    "c": {languagePrism: Prism.languages.c, languageString: "c"},
-    "git": {languagePrism: Prism.languages.git, languageString: "git"},
-    "bash": {languagePrism: Prism.languages.bash, languageString: "bash"},
-    "sql": {languagePrism: Prism.languages.sql, languageString: "sql"},
-    "typescript": {languagePrism: Prism.languages.typescript, languageString: "typescript"},
-    "react jsx": {languagePrism: Prism.languages.jsx, languageString: "jsx"},
-    "react tsx": {languagePrism: Prism.languages.tsx, languageString: "tsx"}
+    "Python": {languagePrism: Prism.languages.python, languageString: "python"},
+    "HTML": {languagePrism: Prism.languages.html, languageString: "html"},
+    "JavaScript": {languagePrism: Prism.languages.javascript, languageString: "javascript"},
+    "CSS": {languagePrism: Prism.languages.css, languageString: "css"},
+    "C": {languagePrism: Prism.languages.c, languageString: "c"},
+    "Git": {languagePrism: Prism.languages.git, languageString: "git"},
+    "Bash": {languagePrism: Prism.languages.bash, languageString: "bash"},
+    "SQL": {languagePrism: Prism.languages.sql, languageString: "sql"},
+    "TypeScript": {languagePrism: Prism.languages.typescript, languageString: "typescript"},
+    "React JSX": {languagePrism: Prism.languages.jsx, languageString: "jsx"},
+    "React TSX": {languagePrism: Prism.languages.tsx, languageString: "tsx"}
   };
 
   if (selected_language in languageMap) {
     return languageMap[selected_language];
   }
 
-  return languageMap["python"];
+  return languageMap["Python"];
 }
 
 function formatCode() {
@@ -255,6 +267,17 @@ function formatCode() {
     let {result, position} = loopNodes(myDiv.childNodes, mapColor(""), "", diff, 0);
     result = replaceLeadingSpaces(result);
     document.getElementById("outputCode").value = result;
+}
+
+function changeEmptyIndex() {
+  const emptyIndex = document.getElementById("emptyIndex").value;
+  const isnum = /^\d+$/.test(emptyIndex);
+  if (isnum && emptyIndex !== "0") {
+    formatCode();
+  }
+  else {
+    document.getElementById("emptyIndex").value = "1";
+  }
 }
 
 function replaceText() {
