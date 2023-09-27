@@ -225,7 +225,7 @@ function calculateDiff(inputCode, inputCodeOptions) {
     return diff;
 }
 
-function getLanguge() {
+function getLanguage() {
   let selected_language = $('#languageSelect').text();
 
   const languageMap = {
@@ -259,7 +259,7 @@ function formatCode() {
     }
 
     const diff = calculateDiff(inputCode, inputCodeOptions);
-    const {languagePrism, languageString} = getLanguge();
+    const {languagePrism, languageString} = getLanguage();
     const formattedCode = Prism.highlight(inputCode, languagePrism, languageString);
 
     let myDiv = document.getElementById("sample");
