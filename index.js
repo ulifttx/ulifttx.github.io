@@ -8,26 +8,10 @@ $('#languageList li a').click(function(){
 });
 
 function mapColor(color) {
-    const colorMap = {
-      //"rgb(212, 212, 212)": "light-gray",
-      "rgb(219, 76, 105)": "orange",
-      "rgb(86, 156, 214)": "blue",
-      "rgb(156, 220, 254)": "skyblue",
-      "rgb(106, 153, 85)": "green",
-      "rgb(181, 206, 168)": "mint",
-      "rgb(206, 145, 120)": "orange",
-      "rgb(197, 134, 192)": "pink",
-      "rgb(220, 220, 170)": "lemon",
-      "rgb(209, 105, 105)": "orange",
-      "rgb(78, 201, 176)": "mint",
-      "rgb(215, 186, 125)": "orange",
-      "rgb(128, 128, 128)": "gray"
-    };
-    
-    if (color in colorMap) {
+    if (color !== "") {
       return {
-        prepend: "<" + colorMap[color] + ">",
-        append: "</" + colorMap[color] + ">"
+        prepend: "<" + color + ">",
+        append: "</" + color + ">"
       };
     }
     return {
@@ -155,8 +139,7 @@ function loopNodes(nodes, color, sanitizedText, diff, position) {
         }
 
         console.log(node);
-        console.log(window.getComputedStyle(node).getPropertyValue("--hygraph"));
-        let results = loopNodes(node.childNodes, mapColor(window.getComputedStyle(node).color), nSanitizedText, diff, position);
+        let results = loopNodes(node.childNodes, mapColor(window.getComputedStyle(node).getPropertyValue("--hygraph")), nSanitizedText, diff, position);
         result += results.result;
         position = results.position;
       }
